@@ -1,0 +1,73 @@
+
+currFolder = shell.dir()
+
+local w,h = term.getSize()
+local shotTimer = 0.25
+local noshot = false
+
+if not gameutils then
+	os.loadAPI(currFolder.."/gameutils")
+end
+--This function erros. I have no clue how to get the cords moving thingy working.
+local function handleEvents()
+	local event, p1 = os.pullEvent()
+	if event == "key" then
+		--key events
+		if p1 == keys.right then
+			if fShip.image.bounds.x + fShip.image.bounds.width >= w then
+				fShip.image.bounds.x = fShip.image.bounds.x+1
+			end	
+		elseif p1 == keys.left then
+			if fShip.image.bounds.x <= 1 then
+				fShip.image.bounds.x = fShip.image.bounds.x-1
+			end
+		elseif p1 == keys.space then
+			if noshot == false then
+				fshotT = os.startTimer(shotTimer)
+				noshot = true
+			end	
+		end
+	elseif event == "timer" then
+		if p1 == "fshotT" then
+			if fshot.y > 1 then
+				fshot.y = fshot.y-1
+			else
+				noshot = false
+			end	
+		end
+	end	
+end
+
+local function drawB()
+	gameutils.writeToBuffer(backGround)
+	gameutils.writeToBuffer(fShip)
+	gameutils.writeToBuffer(eShip)
+end
+
+local eShips = #fs.list(currFolder.."/shipsEnemy")
+local fShips = #fs.list(currFolder.."/shipsFriendly")
+local backgrounds = #fs.list(currFolder.."/backgrounds")
+
+local eShipIndex = math.random(1, eShips)
+local fShipIndex = math.random(1, fShips)
+local backgroundIndex = math.random(1, backgrounds)
+
+local fShip = gameutils.loadSprite(currFolder.."/shipsFriendly/fShip"..fShipIndex..".nfp",w, h)
+local eShip = gameutils.loadSprite(currFolder.."/shipsEnemy/eShip"..eShipIndex..".nfp", w, 1)
+local backGround = gameutils.loadSprite(currFolder.."/backgrounds/bg"..backgroundIndex..".nfp",1,1)
+local fshot = gameutils.loadSprite(currFolder.."/shot.nfp", 1,1)
+local eshot = gameutils.loadSprite(currFolder.."/shot1.nfp",1,1)
+
+
+gameutils.initializeBuffer()
+gameutils.clearBuffer(colors.black)
+gameutils.writeToBuffer(backGround)
+
+fShip:moveTo(math.floor(w/2), h-3)
+eShip:moveTo(math.floor(w/2), 3)
+
+while true do
+	handleEvents()
+	drawB()
+	gameutils.drawBuffer()
+end
